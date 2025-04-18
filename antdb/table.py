@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Type
+from typing import Any, List, Type
 
 from pydantic import BaseModel, Field
 
@@ -22,10 +22,10 @@ class Table:
     def insert(self, record: BaseModel) -> None:
         if not isinstance(record, self.model):
             raise ValueError(
-                f"Record must be an instance of {self.model.__name__}"
+                f'Record must be an instance of {self.model.__name__}'
             )
 
-        if hasattr(record, "id") and record.id is None:
+        if hasattr(record, 'id') and record.id is None:
             record.id = self._get_next_id()
         self.records.append(record)
 
@@ -36,16 +36,16 @@ class Table:
         self, field: str, operator: str, value: Any
     ) -> List[BaseModel]:
         ops = {
-            "=": lambda x, y: x == y,
-            ">": lambda x, y: x > y,
-            "<": lambda x, y: x < y,
-            ">=": lambda x, y: x >= y,
-            "<=": lambda x, y: x <= y,
-            "!=": lambda x, y: x != y,
+            '=': lambda x, y: x == y,
+            '>': lambda x, y: x > y,
+            '<': lambda x, y: x < y,
+            '>=': lambda x, y: x >= y,
+            '<=': lambda x, y: x <= y,
+            '!=': lambda x, y: x != y,
         }
         if operator not in ops:
             raise ValueError(
-                f"Invalid operator. Use one of: {', '.join(ops.keys())}"
+                f'Invalid operator. Use one of: {", ".join(ops.keys())}'
             )
 
         return [
@@ -69,29 +69,3 @@ class Table:
         to_delete = self.select_where(field, operator, value)
         self.records = [r for r in self.records if r not in to_delete]
         return initial_length - len(self.records)
-
-
-class DataBase:
-    def __init__(self, name: str):
-        self.name = name
-        self.tables: Dict[str, Table] = {}
-
-    def create_table(self, name: str, model: Type[BaseModel]) -> Table:
-        if name in self.tables:
-            raise ValueError(f"Table '{name}' already exists")
-        table = Table(name, model)
-        self.tables[name] = table
-        return table
-
-    def drop_table(self, name: str) -> None:
-        if name not in self.tables:
-            raise ValueError(f"Table '{name}' does not exist")
-        del self.tables[name]
-
-    def get_table(self, name: str) -> Table:
-        if name not in self.tables:
-            raise ValueError(f"Table '{name}' does not exist")
-        return self.tables[name]
-
-    def list_tables(self) -> List[str]:
-        return list(self.tables.keys())
